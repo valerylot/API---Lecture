@@ -18,5 +18,7 @@ namespace api.Data
 
         //each DbSet is ONE table, this one becomes the movies table
         public DbSet<Movie> Movies { get; set; }
+
+        public DbSet<Actor> Actors { get; set; }
     }
 }

@@ -28,7 +28,7 @@ namespace api.Repositories
         public Movie? GetById(int id)
         {
             //find looks up a row by its primary key, it returns null if there is no match
-            return _db.Movies.Find();
+            return _db.Movies.Find(id);
         }
 
         public Movie Add(Movie movie)
@@ -39,6 +39,20 @@ namespace api.Repositories
             //SaveChanges() sends INSERT into the database. After this, the movie row is filled in
             _db.SaveChanges();
             return movie;
+        }
+
+        public void Update(Movie movie)
+        {
+            //we mark the movie is changed, and then save those changes to the db
+            _db.Movies.Update(movie);
+            _db.SaveChanges();
+        }
+
+        public void Delete(Movie movie)
+        {
+            //we mark the movie for removal, then SaveChanges send the delete
+            _db.Movies.Remove(movie);
+            _db.SaveChanges();
         }
     }
 }

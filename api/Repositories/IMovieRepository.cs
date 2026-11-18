@@ -12,5 +12,8 @@ namespace api.Repositories
         Movie? GetById(int id); 
         //returns one movie, or null if no movie has that id (that's what the question mark means)
         Movie Add(Movie movie);
+        void Update(Movie movie);
+
+        void Delete(Movie movie);
     }
 }
