@@ -16,7 +16,7 @@ namespace api.Services
             _repository = repository;
         }
 
-        public MovieResponseDto Create(CreateMovieDto dto)
+        public async Task<MovieResponseDto> CreateAsync(CreateMovieDto dto)
         {
             Movie movie = new Movie();
             movie.Title = dto.Title;
@@ -24,29 +24,72 @@ namespace api.Services
             movie.Rating = dto.Rating;
             movie.ReleaseYear = dto.ReleaseYear;
 
-            Movie saved = _repository.Add(movie);
+            Movie saved = await _repository.AddAsync(movie);
             //sending back the same movie but now with an Id
             return ToDto(saved);
         }
 
-        public List<MovieResponseDto> GetAll()
-        {
-            List<Movie> movies = _repository.GetAll();
 
-            //turning every element in this list into a Dto
+        //This method awaits the repository so it HAS to be async and return a Task too
+        //Once the bottom layer is async, every layer that calls it becomes async as well
+        public async Task<List<MovieResponseDto>> GetAllAsync()
+        {
+
+            //await waits for the db without blocking the thread
+            List<Movie> movies = await _repository.GetAllAsync();
+
+            //turning every Movie entity into a MovieResponseDto
             return movies.Select(ToDto).ToList();
         }
 
-        public MovieResponseDto? GetById(int id)
+        public async Task<MovieResponseDto?> GetByIdAsync(int id)
         {
-            Movie? movie = _repository.GetById(id);
+            Movie? movie = await _repository.GetByIdAsync(id);
 
             //if there is no movie, pass null up to the controller
-            if(movie is null)
+            if (movie is null)
             {
                 return null;
             }
             return ToDto(movie);
+        }
+
+        public async Task<MovieResponseDto?> UpdateAsync(int id, UpdateMovieDto dto)
+        {
+            //we must first load the movie from the database
+            Movie? movie = await _repository.GetByIdAsync(id);
+
+            //if our id isn't in the db, return null
+            if (movie is null)
+            {
+                return null;
+            }
+
+            movie.Title = dto.Title;
+            movie.Director = dto.Director;
+            movie.Rating = dto.Rating;
+            movie.ReleaseYear = dto.ReleaseYear;
+
+            //Record when this movie is last changed
+            movie.UpdatedAt = DateTime.UtcNow;
+
+            await _repository.UpdateAsync(movie);
+            return ToDto(movie);
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            Movie? movie = await _repository.GetByIdAsync(id);
+
+            if (movie is null)
+            {
+                //false tells our controller no movie was found, send 404
+                return false;
+            }
+
+            await _repository.DeleteAsync(movie);
+            return true;
+
         }
 
         //We will create a Helper Function that maps our Dtos
@@ -74,44 +117,6 @@ namespace api.Services
                 ReleaseYear = movie.ReleaseYear,
                 Rating = movie.Rating
             };
-        }
-
-        public MovieResponseDto? Update(int id, UpdateMovieDto dto)
-        {
-            //we must first load the movie from the database
-            Movie? movie = _repository.GetById(id);
-
-            //if our id isn't in the db, return null
-            if(movie is null)
-            {
-                return null;
-            }
-
-            movie.Title = dto.Title;
-            movie.Director = dto.Director;
-            movie.Rating = dto.Rating;
-            movie.ReleaseYear = dto.ReleaseYear;
-
-            //Record when this movie is last changed
-            movie.UpdatedAt = DateTime.UtcNow;
-
-            _repository.Update(movie);
-            return ToDto(movie);
-        }
-
-        public bool Delete(int id)
-        {
-            Movie? movie = _repository.GetById(id);
-
-            if(movie is null)
-            {
-                //false tells our controller no movie was found, send 404
-                return false;
-            }
-
-            _repository.Delete(movie);
-            return true;
-
         }
     }
 }
