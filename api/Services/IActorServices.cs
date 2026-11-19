@@ -9,10 +9,10 @@ namespace api.Services
 {
     public interface IActorServices
     {
-        List<ActorResponseDto> GetAll();
-        ActorResponseDto? GetById(int id);
-        ActorResponseDto Create(CreateActorDto dto);
-        ActorResponseDto? Update(int id, UpdateActorDto dto);
-        bool Delete (int id);
+        Task<List<ActorResponseDto>> GetAllAsync();
+        Task<ActorResponseDto?> GetByIdAsync(int id);
+        Task<ActorResponseDto> CreateAsync(CreateActorDto dto);
+        Task<ActorResponseDto?> UpdateAsync(int id, UpdateActorDto dto);
+        Task<bool> DeleteAsync (int id);
     }
 }

@@ -20,15 +20,15 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<ActorResponseDto>> GetAll()
+        public async Task<ActionResult<List<ActorResponseDto>>> GetAll()
         {
-            return Ok(_services.GetAll());
+            return Ok(await _services.GetAllAsync());
         }
 
         [HttpGet("getbyid/{id}")]
-        public ActionResult<ActorResponseDto> GetById(int id)
+        public async Task<ActionResult<ActorResponseDto>> GetById(int id)
         {
-            ActorResponseDto? actor = _services.GetById(id);
+            ActorResponseDto? actor = await _services.GetByIdAsync(id);
 
             if(actor == null)
             {
@@ -38,24 +38,27 @@ namespace api.Controllers
         }
 
         [HttpPost("AddActor")]
-        public ActionResult<ActorResponseDto> AddActor([FromBody]CreateActorDto dto)
+        public async Task<ActionResult<ActorResponseDto>> AddActor([FromBody]CreateActorDto dto)
         {
+            //this gathers a list of all the actors, so that we can do the isExisting check of actors in db
+            List<ActorResponseDto> actors = await _services.GetAllAsync();
 
-            bool isExisting = _services.GetAll().Any(a => a.Name == dto.Name);
+            bool isExisting = actors.Any(a => a.Name == dto.Name);
+
             if (isExisting)
             {
                 return Conflict($"The actor {dto.Name} is already in the database.");
             }
             
-            ActorResponseDto actor = _services.Create(dto);
+            ActorResponseDto actor = await _services.CreateAsync(dto);
 
             return CreatedAtAction(nameof(GetById), new{id = actor.Id}, actor);
         }
 
         [HttpPut("update/{id}")]
-        public ActionResult<ActorResponseDto> Update(int id, [FromBody]UpdateActorDto dto)
+        public async Task<ActionResult<ActorResponseDto>> Update(int id, [FromBody]UpdateActorDto dto)
         {
-            ActorResponseDto? actor = _services.Update(id, dto);
+            ActorResponseDto? actor = await _services.UpdateAsync(id, dto);
 
             if(actor is null)
             {
@@ -65,9 +68,9 @@ namespace api.Controllers
         }
 
         [HttpDelete("delete/{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            bool isDeleted = _services.Delete(id);
+            bool isDeleted = await _services.DeleteAsync(id);
 
             if (!isDeleted)
             {
