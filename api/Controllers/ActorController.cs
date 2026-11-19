@@ -32,7 +32,7 @@ namespace api.Controllers
 
             if(actor == null)
             {
-                return NotFound();
+                return NotFound($"No actor found with ID {id}");
             }
             return Ok(actor);
         }
@@ -40,13 +40,14 @@ namespace api.Controllers
         [HttpPost("AddActor")]
         public ActionResult<ActorResponseDto> AddActor([FromBody]CreateActorDto dto)
         {
-            ActorResponseDto actor = _services.Create(dto);
 
-            bool isExisting = _services.GetAll().Any(a => a.Name == actor.Name);
+            bool isExisting = _services.GetAll().Any(a => a.Name == dto.Name);
             if (isExisting)
             {
-                return Conflict($"The actor {actor.Name} is already in the database.");
+                return Conflict($"The actor {dto.Name} is already in the database.");
             }
+            
+            ActorResponseDto actor = _services.Create(dto);
 
             return CreatedAtAction(nameof(GetById), new{id = actor.Id}, actor);
         }
@@ -58,7 +59,7 @@ namespace api.Controllers
 
             if(actor is null)
             {
-                return NotFound();
+                return NotFound($"No actor found with ID {id}");
             }
             return Ok(actor);
         }
@@ -70,7 +71,7 @@ namespace api.Controllers
 
             if (!isDeleted)
             {
-                return NotFound();
+                return NotFound($"No actor found with ID {id}");
             }
             return NoContent();
         }
